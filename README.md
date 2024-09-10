@@ -7,25 +7,26 @@ JAVA RESTful API designed for a Library.
 classDiagram
     class Book {
         +String title
-        +String isbn
+        +Long isbn
         +Author author
-        +boolean isBorrowed
-        +Book(String title, String isbn, Author author)
+        +int availableCopies
         +String getTitle()
         +void setTitle(String title)
-        +String getIsbn()
-        +void setIsbn(String isbn)
+        +Long getIsbn()
+        +void setIsbn(Long isbn)
         +Author getAuthor()
         +void setAuthor(Author author)
-        +boolean isBorrowed()
-        +void setBorrowed(boolean isBorrowed)
+        +int getAvailableCopies()
+        +void setAvailableCopies(int avaialbleCopies)
     }
 
     class Author {
+        +Long id    
         +String name
         +String nationality
         +List<Book> books
-        +Author(String name, String nationality)
+        +Long getId()
+        +void setId(Long id)
         +String getName()
         +void setName(String name)
         +String getNationality()
@@ -35,21 +36,22 @@ classDiagram
     }
 
     class User {
+        +Long id
         +String name
-        +String id
-        +User(String name, String id)
+        +Long getId()
+        +void setId(Long id)
         +String getName()
         +void setName(String name)
-        +String getId()
-        +void setId(String id)
     }
 
     class Loan {
+        +Long id
         +Book book
         +User user
         +LocalDate loanDate
         +LocalDate returnDate
-        +Loan(Book book, User user, LocalDate loanDate, LocalDate returnDate)
+        +Long getId()
+        +void setId(Long id)
         +Book getBook()
         +void setBook(Book book)
         +User getUser()
