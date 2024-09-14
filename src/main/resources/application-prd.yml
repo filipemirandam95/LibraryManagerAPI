@@ -4,6 +4,9 @@ spring:
     username: ${PGUSER}
     password: ${PGPASSWORD}
   jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
     hibernate:
       ddl-auto: create
