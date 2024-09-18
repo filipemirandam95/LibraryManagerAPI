@@ -7,6 +7,8 @@ import com.example.application.model.User;
 import com.example.application.service.BookService;
 import com.example.application.service.LoanService;
 import com.example.application.service.UserService;
+import com.example.application.view.View;
+import com.fasterxml.jackson.annotation.JsonView;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -18,13 +20,10 @@ import java.util.List;
 @RequestMapping("/loans")
 public class LoanController {
     private final LoanService loanService;
-    private final UserService userService;
-    private final BookService bookService;
 
-    public LoanController(LoanService loanService, UserService userService, BookService bookService) {
+    public LoanController(LoanService loanService) {
         this.loanService = loanService;
-        this.userService = userService;
-        this.bookService = bookService;
+
     }
 
     @GetMapping
@@ -33,16 +32,23 @@ public class LoanController {
     }
 
     @GetMapping("{loanId}")
-    public ResponseEntity<Loan> getLoanById(@PathVariable Long loanId){
+    public ResponseEntity<LoanDTO> getLoanById(@PathVariable Long loanId){
         return ResponseEntity.ok(loanService.getLoanById(loanId));
     }
 
     @PostMapping
+    @JsonView(View.DefaultView.class)
     public ResponseEntity<LoanDTO> createLoan(@RequestBody LoanDTO loanToCreate){
-        User user = userService.findUserById(loanToCreate.getUserId());
-        Book book  = bookService.findBookByIsbn(loanToCreate.getIsbn());
-        var loanCreated = loanService.createLoan(loanToCreate.toModel(user,book));
+        var loanCreated = loanService.createLoan(loanToCreate);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{loanId}").buildAndExpand(loanCreated.getLoanId()).toUri();
         return ResponseEntity.created(location).body(loanCreated);
+    }
+
+    @PutMapping
+    @JsonView(View.PutLoanView.class)
+    public ResponseEntity<LoanDTO> modifyLoan(@RequestBody LoanDTO loanToModify){
+        var loanModified = loanService.modifyLoan(loanToModify);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{loanId}").buildAndExpand(loanModified.getLoanId()).toUri();
+        return ResponseEntity.created(location).body(loanModified);
     }
 }

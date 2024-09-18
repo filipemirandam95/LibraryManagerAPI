@@ -3,12 +3,11 @@ package com.example.application.controller.dto;
 import com.example.application.model.Author;
 import com.example.application.view.View;
 import com.fasterxml.jackson.annotation.JsonView;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class AuthorDTO {
-    @JsonView(View.DefaultView.class)
+    @JsonView(View.HideIdView.class)
     private Long id;
     @JsonView(View.DefaultView.class)
     private String name;
@@ -16,6 +15,17 @@ public class AuthorDTO {
     private String nationality;
     @JsonView(View.DefaultView.class)
     private List<BookDTO> books;
+
+    public AuthorDTO() {
+        this.id = 0L;
+    }
+
+    public AuthorDTO(Author model) {
+        this.id = model.getId();
+        this.name = model.getName();
+        this.nationality = model.getNationality();
+        this.books = model.getBooks().stream().map(BookDTO:: new).collect(Collectors.toList());
+    }
 
     public Long getId() {
         return id;

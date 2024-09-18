@@ -1,10 +1,13 @@
 package com.example.application.service;
 
-import com.example.application.model.User;
+import com.example.application.controller.dto.UserDTO;
+import java.util.List;
 
 public interface UserService {
 
-    Iterable<User> findAllUsers();
-    User findUserById(Long id);
-    User createUser(User userToCreate);
+    List<UserDTO> findAllUsers();
+    List<UserDTO> findAllUsersByName(String name);
+    UserDTO createUser(UserDTO userToCreate);
+    UserDTO modifyUser(UserDTO userToModify);
+    void deleteUser(Long userId);
 }

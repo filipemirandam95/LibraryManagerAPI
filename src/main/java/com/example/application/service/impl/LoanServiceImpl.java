@@ -1,17 +1,18 @@
 package com.example.application.service.impl;
 
 import com.example.application.controller.dto.LoanDTO;
+import com.example.application.model.Book;
 import com.example.application.model.Loan;
+import com.example.application.model.User;
 import com.example.application.repository.BookRepository;
 import com.example.application.repository.LoanRepository;
 import com.example.application.repository.UserRepository;
 import com.example.application.service.LoanService;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,31 +31,29 @@ public class LoanServiceImpl implements LoanService {
     @Override
     public List<LoanDTO> getAllLoans() {
         List<Loan> loans = loanRepository.findAll();
-        List<LoanDTO> loanDTOs = loans.stream().map(this::convertToDTO).collect(Collectors.toList());
-        return loanDTOs;
+        return loans.stream().map(LoanDTO::new).collect(Collectors.toList());
     }
 
     @Override
-    public Loan getLoanById(Long id) {
-        return loanRepository.findById(id).orElseThrow(NoSuchElementException::new);
+    public LoanDTO getLoanById(Long id) {
+        return new LoanDTO(loanRepository.findById(id).orElseThrow(NoSuchElementException::new));
     }
 
     @Override
-    public LoanDTO createLoan(Loan loanToCreate) {
-
-        System.out.println("Loan Date: " + loanToCreate.getLoanDate());
-        System.out.println("Return Date: " + loanToCreate.getReturnDate());
-
+    public LoanDTO createLoan(LoanDTO loanDTO) {
+        User user = userRepository.findById(loanDTO.getUserId()).orElseThrow(NoSuchElementException::new);
+        Book book = bookRepository.findById(loanDTO.getIsbn()).orElseThrow(NoSuchElementException::new);
+        Loan loanToCreate = loanDTO.toModel(user,book);
         if(loanRepository.existsById(loanToCreate.getLoanId())){
             throw new IllegalArgumentException("This Loan ID already exists.");
         }
 
         if(!bookRepository.existsById(loanToCreate.getBook().getIsbn())){
-            throw new IllegalArgumentException("This Book Id doesn't exists.");
+            throw new IllegalArgumentException("This Book Id doesn't exist.");
         }
 
         if(!userRepository.existsById(loanToCreate.getUser().getId())){
-            throw new IllegalArgumentException("This User Id doesn't exists.");
+            throw new IllegalArgumentException("This User Id doesn't exist.");
         }
 
         if(loanToCreate.getBook().getAvailableCopies() == 0){
@@ -62,20 +61,27 @@ public class LoanServiceImpl implements LoanService {
         }
 
         if(loanToCreate.getLoanDate().isBefore(LocalDate.now()) ){
-            throw new IllegalArgumentException("This loan date is invalid.");
+            throw new IllegalArgumentException("The loan date can not be earlier than the current date.");
         }
-
+        loanToCreate.getBook().decrementAvailableCopies();
+        bookRepository.save(loanToCreate.getBook());
         Loan loanCreated = loanRepository.save(loanToCreate);
-        return convertToDTO(loanCreated);
+        return new LoanDTO(loanCreated);
     }
 
-    private LoanDTO convertToDTO(Loan loan){
-        LoanDTO loanDTO = new LoanDTO();
-        loanDTO.setLoanId(loan.getLoanId());
-        loanDTO.setIsbn(loan.getBook().getIsbn());
-        loanDTO.setUserId(loan.getUser().getId());
-        loan.setLoanDate(loan.getLoanDate());
-        loan.setReturnDate(loan.getReturnDate());
-        return loanDTO;
+    @Override
+    public LoanDTO modifyLoan(LoanDTO loanToModify) {
+        Optional<Loan> loan = loanRepository.findById(loanToModify.getLoanId());
+        if(loan.isPresent()) {
+            if (loanToModify.getLoanDate().isBefore(loan.get().getLoanDate())) {
+                throw new IllegalArgumentException("The loan date can not be earlier than the original loan date.");
+            }
+            if (loanToModify.getReturnDate().isBefore(loan.get().getReturnDate())) {
+                throw new IllegalArgumentException("The loan return date can not be earlier than the original loan return date.");
+            }
+            return new LoanDTO(loanRepository.save(loanToModify.toModel(loan.get().getUser(), loan.get().getBook())));
+        }else{
+            throw new NoSuchElementException("This loan id was not found. ");
+        }
     }
 }

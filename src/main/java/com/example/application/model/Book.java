@@ -45,5 +45,7 @@ public class Book {
         this.availableCopies = availableCopies;
     }
 
-
+    public void decrementAvailableCopies(){
+        this.availableCopies-=1;
+    }
 }

@@ -6,14 +6,25 @@ import com.example.application.view.View;
 import com.fasterxml.jackson.annotation.JsonView;
 
 public class BookDTO {
-    @JsonView(View.DefaultView.class)
+    @JsonView(View.HideIdView.class)
     private Long isbn;
     @JsonView(View.DefaultView.class)
     private String title;
-    @JsonView(View.GetView.class)
+    @JsonView({View.HideIdView.class, View.BookView.class})
     private long authorId;
     @JsonView(View.DefaultView.class)
     private int availableCopies;
+
+    public BookDTO() {
+        this.isbn = 0L;
+    }
+
+    public BookDTO(Book model) {
+        this.isbn = model.getIsbn();
+        this.title = model.getTitle();
+        this.authorId = model.getAuthor().getId();
+        this.availableCopies = model.getAvailableCopies();
+    }
 
     public Long getIsbn() {
         return isbn;
